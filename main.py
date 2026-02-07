@@ -12,6 +12,8 @@ def run():
     
     x = L // 2
     y = H // 2
+    force_vert = 0
+    gravite = 0.2
 
     while True:
         for event in pygame.event.get():
@@ -19,19 +21,24 @@ def run():
                 pygame.quit()
                 return
         
+        pygame.display.set_caption("Get What U Need - {}".format(time.strftime("%Hh%M")))
+        screen.fill((255, 255, 255))
+
         touches = pygame.key.get_pressed()
         if touches[pygame.K_q] and x > 0: x -= 3
         if touches[pygame.K_d] and x < L - 100: x += 3
-        if touches[pygame.K_z] and y > 0: y -= 3
-        if touches[pygame.K_s] and y < H - 200: y += 3
-
-        pygame.display.set_caption("Get What U Need - {}".format(time.strftime("%Hh%M")))
-        screen.fill((255, 255, 255))
+        if touches[pygame.K_SPACE] and y == H - 200: force_vert = -10
 
         # Sol
         pygame.draw.rect(screen, (100, 100, 100), (0, H - 100, L, 100))
 
         # Perso
+        force_vert += gravite
+        y += force_vert
+        
+        if y > H - 200:
+            y = H - 200
+            force_vert = 0
         pygame.draw.rect(screen, (0, 0, 0), (x, y, 100, 100))
         pygame.display.flip()
 
