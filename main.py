@@ -1,8 +1,11 @@
 import pygame
 import time
+import random
+from math import sin
 
 # Variables Globales
 L, H = 1300, 800
+FPS = 120
 
 class Player:
     def __init__(self):
@@ -61,6 +64,68 @@ class Player:
     def maj(self, screen):
         zone_decoupe = (int(self.frame_index) * self.width, 0, self.width, self.height)
         screen.blit(self.image_act, (self.x, self.y), zone_decoupe)
+
+class Mob:
+    def __init__(self, nom):
+        self.nom = nom
+        self.index = 0
+        self.compteur_vague = 0
+        self.x = L + random.randint(100, 600)
+
+        # Configuration manuelle
+        if nom == "bird":
+            self.image = pygame.image.load("assets/graphics/environment/mobs/bird/walk.png").convert_alpha()
+            self.nb_frames = 6
+            # Redimensionnement par multiplicateur
+            self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 2), int(self.image.get_height() * 2)))
+            self.y_base = random.randint(100, 350)
+            self.y = self.y_base
+            self.amplitude = 30
+            self.vitesse_haut_bas = 0.04
+            self.vitesse = random.uniform(4, 6)
+
+        elif nom == "rat":
+            self.image = pygame.image.load("assets/graphics/environment/mobs/rat/walk.png").convert_alpha()
+            self.nb_frames = 4
+            self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 2), int(self.image.get_height() * 2)))
+            # On calcule la hauteur après le scale pour le positionnement
+            h_temp = self.image.get_height()
+            self.y = H - 100 - h_temp + 35
+            self.vitesse = random.uniform(5, 7)
+
+        elif nom == "loup":
+            self.image = pygame.image.load("assets/graphics/environment/mobs/loup/run.png").convert_alpha()
+            self.nb_frames = 6
+            self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 2.2), int(self.image.get_height() * 2.2)))
+            h_temp = self.image.get_height()
+            self.y = H - 100 - h_temp + 25
+            self.vitesse = random.uniform(6, 8)
+
+        elif nom == "ours":
+            self.image = pygame.image.load("assets/graphics/environment/mobs/ours/run.png").convert_alpha()
+            self.nb_frames = 6
+            self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 3), int(self.image.get_height() * 3)))
+            h_temp = self.image.get_height()
+            self.y = H - 100 - h_temp + 20
+            self.vitesse = random.uniform(4, 5)
+
+        # Dimensions finales pour la découpe
+        self.w = self.image.get_width() // self.nb_frames
+        self.h = self.image.get_height()
+
+    def update(self, screen):
+        self.x -= self.vitesse
+
+        if self.nom == "bird":
+            self.compteur_vague += self.vitesse_haut_bas
+            self.y = self.y_base + sin(self.compteur_vague) * self.amplitude
+
+        self.index += 0.15
+        if self.index >= self.nb_frames:
+            self.index = 0
+            
+        rect = (int(self.index) * self.w, 0, self.w, self.h)
+        screen.blit(self.image, (self.x, self.y), rect)
 
 class Environnement:
     def __init__(self):
@@ -124,6 +189,9 @@ def run():
     player = Player()
     env = Environnement()
     Continuer = True
+    mobs = []
+    spawn_timer_sol = 0
+    spawn_timer_ciel = 0
 
     while Continuer:
         for event in pygame.event.get():
@@ -139,14 +207,34 @@ def run():
         player.appliquer_gravite()
         player.animer()
 
+        spawn_timer_sol += 1
+        if spawn_timer_sol > FPS * 3.5:
+            mobs.append(Mob(random.choice(["loup", "ours", "rat"])))
+            spawn_timer_sol = 0
+
+        spawn_timer_ciel += 2
+        if spawn_timer_ciel > FPS * 1.5:
+            nb_oiseaux = random.randint(0, 1)
+            for i in range(nb_oiseaux):
+                nouvel_oiseau = Mob("bird")
+                nouvel_oiseau.x += (i * random.randint(150, 300))
+                nouvel_oiseau.y_base += random.randint(-50, 50)
+                mobs.append(nouvel_oiseau)
+            spawn_timer_ciel = 0
+
         # Affichage
         screen.fill((255, 255, 255))
         env.maj(screen)
         player.maj(screen)
 
+        for m in mobs[:]:
+            m.update(screen)
+            if m.x < -200:
+                mobs.remove(m)
+
         pygame.display.set_caption(f"Get What U Need - {time.strftime('%Hh%M')}")
         pygame.display.flip()
-        clock.tick(120)
+        clock.tick(FPS)
 
 if __name__ == "__main__":
     run()
