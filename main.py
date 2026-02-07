@@ -1,10 +1,27 @@
 import pygame
 import time
 
+# Variables Globales
+# Fenetre
 L = 1300
 H = 800
 
+# Perso
+x = L // 2
+y = H // 2
+force_vert = 0
+gravite = 0.2
+
+# Utilitaires
+distance = 0
+couleur = (153, 255, 255)
+
+# Fond
+fond_x = 0
+vitesse_fond = 2
+
 def run():
+    global fond_x, y, force_vert
     pygame.init()
     clock = pygame.time.Clock()
     pygame.display.set_caption("Get What U Need")
@@ -25,9 +42,15 @@ def run():
         screen.fill((255, 255, 255))
 
         touches = pygame.key.get_pressed()
-        if touches[pygame.K_q] and x > 0: x -= 3
-        if touches[pygame.K_d] and x < L - 100: x += 3
         if touches[pygame.K_SPACE] and y == H - 200: force_vert = -10
+
+        fond_x -= vitesse_fond
+        if fond_x < -2 * L:
+            fond_x = 0
+
+        pygame.draw.rect(screen, (153, 255, 255), (fond_x, 0, L, H))
+        pygame.draw.rect(screen, (204, 255, 255), (fond_x + L, 0, L, H))
+        pygame.draw.rect(screen, (153, 255, 255), (fond_x + L * 2, 0, L, H))
 
         # Sol
         pygame.draw.rect(screen, (100, 100, 100), (0, H - 100, L, 100))
@@ -35,7 +58,7 @@ def run():
         # Perso
         force_vert += gravite
         y += force_vert
-        
+
         if y > H - 200:
             y = H - 200
             force_vert = 0
