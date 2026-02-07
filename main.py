@@ -58,7 +58,7 @@ class Environnement:
             self.fond_x = 0
 
         self.sol_x -= self.vitesse_sol
-        if self.sol_x <= -L:
+        if self.sol_x <= -self.sol_w:
             self.sol_x = 0
     
     def maj(self, screen):
@@ -90,7 +90,7 @@ def run():
 
         env.defilement()
         player.appliquer_gravite()
-        player.animer(10)
+        player.animer(8)
 
         # Affichage
         screen.fill((255, 255, 255))
