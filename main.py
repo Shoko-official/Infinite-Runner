@@ -6,7 +6,7 @@ from math import sin
 # Variables Globales
 L, H = 1300, 800
 FPS = 120
-hitbox_activee = True
+hitbox_activee = False
 
 class Player:
     def __init__(self):
@@ -15,6 +15,10 @@ class Player:
 
         self.p_jump = pygame.image.load("assets/graphics/characters/player/jump.png").convert_alpha()
         self.p_jump = pygame.transform.scale(self.p_jump, (896 * 2.5, 128 * 2.5))
+
+        self.image_coeur = pygame.image.load("assets/graphics/items/heart.png").convert_alpha()        
+        self.image_coeur = pygame.transform.scale(self.image_coeur, (50, 50)) 
+        self.points_de_vie = 3
 
         self.p_run_nb_images = 8
         self.p_jump_nb_images = 7
@@ -75,6 +79,10 @@ class Player:
 
         if hitbox_activee:
             pygame.draw.rect(screen, (255, 0, 0), self.hitbox, 2)
+
+    def vie_restante(self, screen):
+        for i in range(self.points_de_vie):
+            screen.blit(self.image_coeur, (20 + (i * 60), 20))
 
 class Mob:
     def __init__(self, nom):
@@ -222,6 +230,12 @@ def run():
                 Continuer = False
                 return
 
+        if player.points_de_vie <= 0:
+            print("GAME OVER")
+            pygame.quit()
+            Continuer = False
+            return
+            
         if pygame.key.get_pressed()[pygame.K_SPACE] and player.y >= player.limite_sol:
             player.saut()
 
@@ -247,12 +261,14 @@ def run():
         screen.fill((255, 255, 255))
         env.maj(screen)
         player.maj(screen)
+        player.vie_restante(screen)
 
         for m in mobs[:]:
             m.maj(screen)
             if player.hitbox.colliderect(m.hitbox) and not m.touchee:
                 print("Collision détectée")
                 m.touchee = True
+                player.points_de_vie -= 1
             if m.x < -200:
                 mobs.remove(m)
 
