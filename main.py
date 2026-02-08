@@ -11,16 +11,17 @@ import pygame
 import time
 import random
 import sys
+# On garde le sin pour le vol de l'oiseau
 from math import sin
 from pathlib import Path
 
-def path(relative_path):
+def path(p_relatif):
     """
-    Fonction pour trouver le chemin des ressources, 
-    pour que le .exe trouve les images après compilation.
+    Petite fonction pour pas péter les plombs avec les chemins 
+    quand on compile en .exe (PyInstaller utilise _MEIPASS)
     """
-    base_path = Path(getattr(sys, '_MEIPASS', '.'))
-    return base_path / relative_path
+    base = Path(getattr(sys, '_MEIPASS', '.'))
+    return base / p_relatif
 
 # Variables Globales
 L, H = 1300, 800
@@ -31,30 +32,29 @@ class Player:
     """
     Classe qui gère le joueur,
     Les méthodes : 
-    - __init__ : on initialise les attributs
-    - appliquer_gravite : on applique la gravité et on change l'image si on est en l'air
-    - saut : explicite je pense
-    - animer : gère les animations selon l'action
-    - maj : mise à jour de la position et affichage
-
+    - __init__ : setup du joueur
+    - appliquer_gravite : gestion de la chute
+    - saut : hop !
+    - animer : change les frames
+    - maj : update et redraw
     Les attributs :
-    - p_run : images pour la course
-    - p_jump : images pour le saut
-    - image_coeur : icône de vie
-    - p_run_nb_images : frames course
-    - p_jump_nb_images : frames saut
-    - image_act : état actuel (course/saut)
-    - width, height : dimensions
-    - x, y : position
-    - force_vert : physique verticale
-    - gravite : force de gravité
-    - limite_sol : limite de chute
-    - frame_index : index d'anim
-    - vitesse_anim : vitesse d'anim
-    - vitesse_anim_saut : vitesse anim saut
+    - p_run : frames de course
+    - p_jump : frames de saut
+    - image_coeur : vie
+    - p_run_nb_images : total frames course
+    - p_jump_nb_images : total frames saut
+    - image_act : celle qu'on affiche
+    - width, height : taille du sprite
+    - x, y : coordonées actuelles
+    - force_vert : v-speed
+    - gravite : poids du perso
+    - limite_sol : hauteur du sol
+    - frame_index : index frame
+    - vitesse_anim : speed anim 1
+    - vitesse_anim_saut : speed anim 2
     - hitbox : zone de collision
-    - pause : état de pause
-    - points_de_vie : vie restante
+    - pause : toggle pause
+    - points_de_vie : les coeurs
     """
     def __init__(self):
         self.p_run = pygame.image.load(path("assets/graphics/characters/player/run.png")).convert_alpha()
@@ -78,7 +78,8 @@ class Player:
         self.vitesse_anim_saut = 0.05
         self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)
         self.pause = False
-        self.points_de_vie = 3
+        self.points_de_vie = 3 # On commence avec 3 coeurs
+        
         
     def appliquer_gravite(self):
         """
@@ -136,6 +137,7 @@ class Player:
         screen.blit(self.image_act, (self.x, self.y), zone_decoupe)
 
         if hitbox_activee:
+            # On dessine la hitbox en rouge pour debug
             pygame.draw.rect(screen, (255, 0, 0), self.hitbox, 2)
 
 
@@ -224,16 +226,57 @@ class Mob:
         if self.index >= self.nb_frames:
             self.index = 0
             
-        rect = (int(self.index) * self.w, 0, self.w, self.h)
-        frame_surface = self.image.subsurface(rect)
-        self.hitbox = frame_surface.get_bounding_rect()
+        # Découpe et affichage du sprite
+        zone = (int(self.index) * self.w, 0, self.w, self.h)
+        sprite_m = self.image.subsurface(zone)
+        self.hitbox = sprite_m.get_bounding_rect()
         self.hitbox.x += self.x
         self.hitbox.y += self.y
 
-        screen.blit(self.image, (self.x, self.y), rect)
+        screen.blit(self.image, (self.x, self.y), zone)
         if hitbox_activee:  
             pygame.draw.rect(screen, (0, 255, 0), self.hitbox, 2)
 
+
+
+
+
+class Coin:
+    """
+    Classe pour les pièces d'or.
+    Charge les 10 images d'animation une seule fois.
+    """
+    images = [] 
+    
+    def __init__(self, x, y):
+        if not Coin.images:
+            for i in range(1, 11):
+                p = path(f"assets/graphics/items/coin/Gold_{i}.png")
+                img = pygame.image.load(p).convert_alpha()
+                # On scale la pièce pour qu'elle soit visible
+                img = pygame.transform.scale(img, (45, 45))
+                Coin.images.append(img)
+        
+        self.x = x
+        self.y = y
+        self.index = 0
+        self.vitesse_anim = 0.15
+        self.hitbox = pygame.Rect(self.x, self.y, 40, 40)
+        self.collectee = False
+
+    def maj(self, screen, mult=1.0):
+        self.x -= 4 * mult
+        self.index += self.vitesse_anim
+        if self.index >= len(Coin.images):
+            self.index = 0
+        
+        img = Coin.images[int(self.index)]
+        self.hitbox.x = self.x + 2
+        self.hitbox.y = self.y + 2
+        
+        screen.blit(img, (self.x, self.y))
+        if hitbox_activee:
+            pygame.draw.rect(screen, (255, 255, 0), self.hitbox, 2)
 
 
 
@@ -353,9 +396,14 @@ class Systeme():
         screen.blit(txt_titre, (L//2 - txt_titre.get_width()//2, H//2 - 60))
         screen.blit(txt_msg, (L//2 - txt_msg.get_width()//2, H//2 + 20))
 
-    def afficher_interface(screen, player):
+    def afficher_interface(screen, player, score):
         for i in range(player.points_de_vie):
             screen.blit(player.image_coeur, (20 + (i * 60), 20))
+
+        font = pygame.font.SysFont("Arial", 40, bold=True)
+        # On affiche le score en haut à droite, couleur or
+        render_score = font.render(f"Coins: {score}", True, (255, 215, 0))
+        screen.blit(render_score, (L - render_score.get_width() - 20, 20))
 
 def run():
     """
@@ -381,11 +429,18 @@ def run():
     player = Player()
     env = Environnement()
     Continuer = True
+    # Init des listes et timers
     mobs = []
+    coins = []
+    
     spawn_timer_sol = 0
     spawn_timer_ciel = 0
+    spawn_timer_coin = 0
+    
     jeu_en_cours = False
-    multiplicateur = 1.0
+    multiplicateur = 1.0 # La difficulté qui grimpe tout doucement
+    score = 0
+    
 
     # Boucle du Jeu
     while Continuer:
@@ -400,7 +455,8 @@ def run():
                     if not jeu_en_cours:
                         jeu_en_cours = True
                 if event.key == pygame.K_p or event.key == pygame.K_ESCAPE:
-                    player.pause = not player.pause
+                    player.pause = not player.pause # Toggle pause
+    
 
         if player.points_de_vie <= 0:
             Systeme.fenetre_game_over(screen)
@@ -419,8 +475,12 @@ def run():
                             player = Player()
                             env = Environnement()
                             mobs = []
+                            coins = []
+                            score = 0
                             spawn_timer_sol = 0
                             spawn_timer_ciel = 0
+                            spawn_timer_coin = 0
+                            multiplicateur = 1.0
                             attente = False
             continue
 
@@ -451,7 +511,11 @@ def run():
                     mobs.append(nouvel_oiseau)
                 spawn_timer_ciel = 0
 
-        # Gestion de l'affichage
+            spawn_timer_coin += 1
+            if spawn_timer_coin > (FPS * 1.8):
+                hauteur_piece = random.choice([H-200, H-400, H-150])
+                coins.append(Coin(L + 50, hauteur_piece))
+                spawn_timer_coin = 0
         screen.fill((255, 255, 255))
         env.maj(screen)
 
@@ -459,9 +523,21 @@ def run():
             Systeme.fenetre_lanceur(screen)
         else:
             player.maj(screen)
-            Systeme.afficher_interface(screen, player)
+            Systeme.afficher_interface(screen, player, score)
 
-            # On parcours les mobs actuels
+            for c in coins[:]:
+                if not player.pause:
+                    c.maj(screen, multiplicateur)
+                else:
+                    img = Coin.images[int(c.index)]
+                    screen.blit(img, (c.x, c.y))
+                
+                if player.hitbox.colliderect(c.hitbox):
+                    score += 1
+                    coins.remove(c)
+                elif c.x < -100:
+                    coins.remove(c)
+
             for m in mobs[:]:
                 if not player.pause:
                     m.maj(screen, multiplicateur)
@@ -479,8 +555,9 @@ def run():
             if player.pause:
                 Systeme.fenetre_pause(screen)
 
-        vitesse_act = round(env.vitesse_sol, 2)
-        pygame.display.set_caption(f"Get What U Need - {time.strftime('%Hh%M')} - Speed: {vitesse_act}")
+        # Custom caption pour le debug et l'info joueur
+        v_actuelle = round(env.vitesse_sol, 2)
+        pygame.display.set_caption(f"Get What U Need - {time.strftime('%Hh%M')} - Vitesse: {v_actuelle}")
         pygame.display.flip()
         clock.tick(FPS) # On limite les FPS (pas besoin d'aller excessivement vite, on est qu'en 2d)
 
