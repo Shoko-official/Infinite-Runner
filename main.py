@@ -6,6 +6,7 @@ from math import sin
 # Variables Globales
 L, H = 1300, 800
 FPS = 120
+hitbox_activee = True
 
 class Player:
     def __init__(self):
@@ -28,6 +29,7 @@ class Player:
         self.frame_index = 0
         self.vitesse_anim = 0.13
         self.vitesse_anim_saut = 0.05
+        self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)
         
     def appliquer_gravite(self):
         # Physique Perso
@@ -62,8 +64,13 @@ class Player:
                 self.frame_index = 0
     
     def maj(self, screen):
+        # On cale la hitbox sur la position actuelle
+        self.hitbox.topleft = (self.x, self.y)
         zone_decoupe = (int(self.frame_index) * self.width, 0, self.width, self.height)
         screen.blit(self.image_act, (self.x, self.y), zone_decoupe)
+
+        if hitbox_activee:
+            pygame.draw.rect(screen, (255, 0, 0), self.hitbox, 2)
 
 class Mob:
     def __init__(self, nom):
@@ -109,11 +116,12 @@ class Mob:
             self.y = H - 100 - h_temp + 20
             self.vitesse = random.uniform(4, 5)
 
-        # Dimensions finales pour la découpe
+        # Dimensions pour la découpe et hitbox
         self.w = self.image.get_width() // self.nb_frames
         self.h = self.image.get_height()
+        self.hitbox = pygame.Rect(self.x, self.y, self.w, self.h)
 
-    def update(self, screen):
+    def maj(self, screen):
         self.x -= self.vitesse
 
         if self.nom == "bird":
@@ -125,7 +133,10 @@ class Mob:
             self.index = 0
             
         rect = (int(self.index) * self.w, 0, self.w, self.h)
+        self.hitbox.topleft = (self.x, self.y) # Alignement sur le blit
         screen.blit(self.image, (self.x, self.y), rect)
+        if hitbox_activee:  
+            pygame.draw.rect(screen, (0, 255, 0), self.hitbox, 2)
 
 class Environnement:
     def __init__(self):
@@ -149,7 +160,7 @@ class Environnement:
         self.fond_x = [0, 0, 0, 0, 0] # liste car les positions sont différentes
         self.sol_x = 0
         self.sol_w = L // 4
-        self.vitesse_sol = 2.7 # Je la trouvais agréable
+        self.vitesse_sol = 4 # Je la trouvais agréable
 
     def defilement(self):
         for i in range(5):
@@ -222,13 +233,14 @@ def run():
                 mobs.append(nouvel_oiseau)
             spawn_timer_ciel = 0
 
-        # Affichage
         screen.fill((255, 255, 255))
         env.maj(screen)
         player.maj(screen)
 
         for m in mobs[:]:
-            m.update(screen)
+            m.maj(screen)
+            if player.hitbox.colliderect(m.hitbox):
+                print("Collision détectée")
             if m.x < -200:
                 mobs.remove(m)
 
