@@ -25,8 +25,7 @@ Reste plus qu'a s'amuser !
 ## Améliorations futures :
 
 - Ajouter musique et sons
-- Ajouter des power-up
-- Ajouter une difficultée progessive
+- Ajouter de coeurs, bouclier, aimant
 - Système pour sauvegarder le meilleur score avec un pseudo
 - Ajouter des trou, plateformes, et boss (comme dans super mario-bros)
 - Système de sauvegarde, paramètres

@@ -54,14 +54,14 @@ class Player:
     - vitesse_anim_saut : speed anim 2
     - hitbox : zone de collision
     - pause : toggle pause
-    - points_de_vie : les coeurs
+    - pointson_de_vie : les coeurs
     """
     def __init__(self):
-        self.p_run = pygame.image.load(path("assets/graphics/characters/player/run.png")).convert_alpha()
+        self.p_run = pygame.image.load(str(path("assets/graphics/characters/player/run.png"))).convert_alpha()
         self.p_run = pygame.transform.scale(self.p_run, (1024 * 2.5, 128 * 2.5))
-        self.p_jump = pygame.image.load(path("assets/graphics/characters/player/jump.png")).convert_alpha()
+        self.p_jump = pygame.image.load(str(path("assets/graphics/characters/player/jump.png"))).convert_alpha()
         self.p_jump = pygame.transform.scale(self.p_jump, (896 * 2.5, 128 * 2.5))
-        self.image_coeur = pygame.image.load(path("assets/graphics/items/heart.png")).convert_alpha()        
+        self.image_coeur = pygame.image.load(str(path("assets/graphics/items/heart.png"))).convert_alpha()        
         self.image_coeur = pygame.transform.scale(self.image_coeur, (50, 50)) 
         self.p_run_nb_images = 8
         self.p_jump_nb_images = 7
@@ -78,7 +78,7 @@ class Player:
         self.vitesse_anim_saut = 0.05
         self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)
         self.pause = False
-        self.points_de_vie = 3 # On commence avec 3 coeurs
+        self.pointson_de_vie = 3 # On commence avec 3 coeurs
         
         
     def appliquer_gravite(self):
@@ -101,11 +101,13 @@ class Player:
     def saut(self):
         """
         Méthode de saut basique, on vérifie d'abord qu'on est au sol, histoire d'empêcher
-         les double sauts
+        les double sauts
         """
         if self.y >= self.limite_sol:
             self.force_vert = -10
             self.frame_index = 0
+            return True
+        return False
 
     def animer(self):
         """
@@ -175,7 +177,7 @@ class Mob:
 
         # Configure les params selon l'animal
         if nom == "bird":
-            self.image = pygame.image.load(path("assets/graphics/environment/mobs/bird/walk.png")).convert_alpha()
+            self.image = pygame.image.load(str(path("assets/graphics/environment/mobs/bird/walk.png"))).convert_alpha()
             self.nb_frames = 6
             # Redimensionnement par multiplicateur
             self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 2), int(self.image.get_height() * 2)))
@@ -186,7 +188,7 @@ class Mob:
             self.vitesse = random.uniform(4, 6) # Permets d'avoir une vitesse avec décimale (+ naturel)
 
         elif nom == "rat":
-            self.image = pygame.image.load(path("assets/graphics/environment/mobs/rat/walk.png")).convert_alpha()
+            self.image = pygame.image.load(str(path("assets/graphics/environment/mobs/rat/walk.png"))).convert_alpha()
             self.nb_frames = 4
             self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 2), int(self.image.get_height() * 2)))
             # On calcule la hauteur après le scale pour le positionnement
@@ -195,7 +197,7 @@ class Mob:
             self.vitesse = random.uniform(5, 7)
 
         elif nom == "loup":
-            self.image = pygame.image.load(path("assets/graphics/environment/mobs/loup/run.png")).convert_alpha()
+            self.image = pygame.image.load(str(path("assets/graphics/environment/mobs/loup/run.png"))).convert_alpha()
             self.nb_frames = 6
             self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 2.2), int(self.image.get_height() * 2.2)))
             h_temp = self.image.get_height()
@@ -203,7 +205,7 @@ class Mob:
             self.vitesse = random.uniform(6, 8)
 
         elif nom == "ours":
-            self.image = pygame.image.load(path("assets/graphics/environment/mobs/ours/run.png")).convert_alpha()
+            self.image = pygame.image.load(str(path("assets/graphics/environment/mobs/ours/run.png"))).convert_alpha()
             self.nb_frames = 6
             self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 3), int(self.image.get_height() * 3)))
             h_temp = self.image.get_height()
@@ -240,11 +242,21 @@ class Mob:
 
 
 
-
 class Coin:
     """
     Classe pour les pièces d'or.
-    Charge les 10 images d'animation une seule fois.
+    Les méthodes :
+    - __init__ : initialisaiton des attributs
+    - maj : met à jour la pièce
+    
+    Les attributs :
+    - images : liste des images d'animation
+    - x : position horizontale
+    - y : position verticale
+    - index : index de l'image actuelle
+    - vitesse_anim : vitesse d'animation
+    - hitbox : hitbox de la pièce
+    - collectee : booléen pour savoir si la pièce a été collecté
     """
     images = [] 
     
@@ -252,8 +264,7 @@ class Coin:
         if not Coin.images:
             for i in range(1, 11):
                 p = path(f"assets/graphics/items/coin/Gold_{i}.png")
-                img = pygame.image.load(p).convert_alpha()
-                # On scale la pièce pour qu'elle soit visible
+                img = pygame.image.load(str(p)).convert_alpha()
                 img = pygame.transform.scale(img, (45, 45))
                 Coin.images.append(img)
         
@@ -303,11 +314,11 @@ class Environnement:
     - vitesse_sol : vitesse de défilement du sol
     """
     def __init__(self):
-        self.bg_img = pygame.image.load(path("assets/graphics/environment/background/ville/1.png")).convert()
-        self.bg_img_2 = pygame.image.load(path("assets/graphics/environment/background/ville/2.png")).convert_alpha()
-        self.bg_img_3 = pygame.image.load(path("assets/graphics/environment/background/ville/3.png")).convert_alpha()
-        self.bg_img_4 = pygame.image.load(path("assets/graphics/environment/background/ville/4.png")).convert_alpha()
-        self.bg_img_5 = pygame.image.load(path("assets/graphics/environment/background/ville/5.png")).convert_alpha()
+        self.bg_img = pygame.image.load(str(path("assets/graphics/environment/background/ville/1.png"))).convert()
+        self.bg_img_2 = pygame.image.load(str(path("assets/graphics/environment/background/ville/2.png"))).convert_alpha()
+        self.bg_img_3 = pygame.image.load(str(path("assets/graphics/environment/background/ville/3.png"))).convert_alpha()
+        self.bg_img_4 = pygame.image.load(str(path("assets/graphics/environment/background/ville/4.png"))).convert_alpha()
+        self.bg_img_5 = pygame.image.load(str(path("assets/graphics/environment/background/ville/5.png"))).convert_alpha()
 
         self.bg_img = pygame.transform.scale(self.bg_img, (L, H)) 
         self.bg_img_2 = pygame.transform.scale(self.bg_img_2, (L, H))
@@ -315,7 +326,7 @@ class Environnement:
         self.bg_img_4 = pygame.transform.scale(self.bg_img_4, (L, H))   
         self.bg_img_5 = pygame.transform.scale(self.bg_img_5, (L, H))
 
-        self.sol_img = pygame.image.load(path("assets/graphics/environment/props/ground.png")).convert()
+        self.sol_img = pygame.image.load(str(path("assets/graphics/environment/props/ground.png"))).convert()
         self.sol_img = pygame.transform.scale(self.sol_img, (L // 4, 100))
 
         self.vitesse = [0.2, 0.2, 1.2, 1.8, 2.2]
@@ -397,13 +408,41 @@ class Systeme():
         screen.blit(txt_msg, (L//2 - txt_msg.get_width()//2, H//2 + 20))
 
     def afficher_interface(screen, player, score):
-        for i in range(player.points_de_vie):
+        for i in range(player.pointson_de_vie):
             screen.blit(player.image_coeur, (20 + (i * 60), 20))
 
         font = pygame.font.SysFont("Arial", 40, bold=True)
-        # On affiche le score en haut à droite, couleur or
         render_score = font.render(f"Coins: {score}", True, (255, 215, 0))
         screen.blit(render_score, (L - render_score.get_width() - 20, 20))
+
+class Sons:
+    """
+    Classe qui regroupe et gère les sons du jeu
+    Les méthodes :
+    - __init__ : initialise les sons
+    - lancer_musique : lance la musique
+    """
+    def __init__(self):
+        # On définit le chemin une fois pour toutes pour les effets
+        base_sfx = "assets/Sons/sfx/"
+        
+        self.son_jump = pygame.mixer.Sound(str(path(base_sfx + "jump.wav")))   
+        self.son_hit  = pygame.mixer.Sound(str(path(base_sfx + "hurt.wav")))
+        self.son_coin = pygame.mixer.Sound(str(path(base_sfx + "coin.wav"))) 
+        self.son_over = pygame.mixer.Sound(str(path(base_sfx + "game-over.wav")))
+
+        # J'ai équilibré les volumes selon l'importance
+        self.son_jump.set_volume(0.5) 
+        self.son_hit.set_volume(0.8)
+        self.son_coin.set_volume(0.5)   
+        self.son_over.set_volume(0.8)
+
+    def lancer_musique(self, track="background_music.wav", volume=0.2):
+        # lance en boucle infinie
+        p = str(path("assets/Sons/music/" + track))
+        pygame.mixer.music.load(p)
+        pygame.mixer.music.set_volume(volume) 
+        pygame.mixer.music.play(-1)
 
 def run():
     """
@@ -428,6 +467,9 @@ def run():
 
     player = Player()
     env = Environnement()
+    son = Sons()
+    son.lancer_musique()
+    
     Continuer = True
     # Init des listes et timers
     mobs = []
@@ -458,7 +500,9 @@ def run():
                     player.pause = not player.pause # Toggle pause
     
 
-        if player.points_de_vie <= 0:
+        if player.pointson_de_vie <= 0:
+            son.son_over.play()
+            pygame.mixer.music.stop()
             Systeme.fenetre_game_over(screen)
             pygame.display.flip()
             
@@ -471,9 +515,12 @@ def run():
                         return
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_SPACE:
-                            # On reset les variables de jeu
+                            # On créer les objets
                             player = Player()
                             env = Environnement()
+                            
+                            # Réinitialisation des var
+                            son.lancer_musique()
                             mobs = []
                             coins = []
                             score = 0
@@ -485,8 +532,9 @@ def run():
             continue
 
         if jeu_en_cours and not player.pause:
-            if pygame.key.get_pressed()[pygame.K_SPACE]:
-                player.saut()
+            if pygame.key.get_pressed()[pygame.K_SPACE] or pygame.key.get_pressed()[pygame.K_UP]: # On ajoute la flèche du haut
+                if player.saut():
+                    son.son_jump.play()
 
             if multiplicateur < 2.5:
                 multiplicateur += 0.0001
@@ -503,11 +551,13 @@ def run():
 
             spawn_timer_ciel += 2
             if spawn_timer_ciel > (FPS * 1.5) / multiplicateur:
+                # Une chance sur 2  
                 nb_oiseaux = random.randint(0, 1)
                 for i in range(nb_oiseaux):
                     nouvel_oiseau = Mob("bird")
+                    # On mets des différence (devant, derrière, au dessus, en dessous)
                     nouvel_oiseau.x += (i * random.randint(150, 300))
-                    nouvel_oiseau.y_base += random.randint(-50, 50)
+                    nouvel_oiseau.y_base += random.randint(-50, 50) 
                     mobs.append(nouvel_oiseau)
                 spawn_timer_ciel = 0
 
@@ -533,6 +583,7 @@ def run():
                     screen.blit(img, (c.x, c.y))
                 
                 if player.hitbox.colliderect(c.hitbox):
+                    son.son_coin.play()
                     score += 1
                     coins.remove(c)
                 elif c.x < -100:
@@ -546,8 +597,9 @@ def run():
                     screen.blit(m.image, (m.x, m.y), rect)
 
                 if player.hitbox.colliderect(m.hitbox) and not m.touchee:
+                    son.son_hit.play()
                     m.touchee = True
-                    player.points_de_vie -= 1
+                    player.pointson_de_vie -= 1
                     
                 if not player.pause and m.x < -200:
                     mobs.remove(m)
