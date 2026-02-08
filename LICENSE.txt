@@ -23,4 +23,4 @@ purposes of training, fine-tuning, or improving any machine learning or
 artificial intelligence models without explicit written permission from the 
 author.
 
-The official repository is : https://github.com/Shoko-official/Basic-Game
+The official repository is : https://github.com/Shoko-official/Infinite-Runner/
