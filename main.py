@@ -12,20 +12,16 @@ class Player:
     def __init__(self):
         self.p_run = pygame.image.load("assets/graphics/characters/player/run.png").convert_alpha()
         self.p_run = pygame.transform.scale(self.p_run, (1024 * 2.5, 128 * 2.5))
-
         self.p_jump = pygame.image.load("assets/graphics/characters/player/jump.png").convert_alpha()
         self.p_jump = pygame.transform.scale(self.p_jump, (896 * 2.5, 128 * 2.5))
-
         self.image_coeur = pygame.image.load("assets/graphics/items/heart.png").convert_alpha()        
         self.image_coeur = pygame.transform.scale(self.image_coeur, (50, 50)) 
-        self.points_de_vie = 3
-
         self.p_run_nb_images = 8
         self.p_jump_nb_images = 7
-
         self.image_act = self.p_run
         self.width = 320
         self.height = 320
+
         self.x, self.y = (L-320) // 2, H // 2
         self.force_vert = 0
         self.gravite = 0.2
@@ -35,26 +31,28 @@ class Player:
         self.vitesse_anim_saut = 0.05
         self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)
         self.pause = False
+        self.points_de_vie = 3
         
     def appliquer_gravite(self):
-        # Physique Perso
+        # On applique la gravité et on change l'image si on est en l'air
         self.force_vert += self.gravite
         self.y += self.force_vert
 
         if self.y > self.limite_sol:
             self.y = self.limite_sol
             self.force_vert = 0
-            self.image_act = self.p_run # Sol = Run
+            self.image_act = self.p_run
         else :
-            self.image_act = self.p_jump # Air = Jump
+            self.image_act = self.p_jump
     
     def saut(self):
+        # Un petit saut sympatoch
         if self.y >= self.limite_sol:
             self.force_vert = -10
-            self.frame_index = 0 # Sinon on commence pas au début..
+            self.frame_index = 0
 
     def animer(self):
-        # Animation de Saut
+        # Gestion des animations (run vs jump)
         if self.image_act == self.p_jump:
             if self.force_vert > 0 and self.frame_index >= 4 :
                 self.frame_index = 4 # On lock à la frame 4 (chute)
@@ -62,13 +60,14 @@ class Player:
                 self.frame_index += self.vitesse_anim_saut 
                 if self.frame_index >= self.p_jump_nb_images:
                     self.frame_index = 0 
-        # Animation de Course
         else :
             self.frame_index += self.vitesse_anim 
             if self.frame_index >= self.p_run_nb_images:
                 self.frame_index = 0
     
+    
     def maj(self, screen):
+        # Mise à jour de la position et affichage
         zone_decoupe = (int(self.frame_index) * self.width, 0, self.width, self.height)
         frame_surface = self.image_act.subsurface(zone_decoupe)
 
@@ -82,8 +81,33 @@ class Player:
             pygame.draw.rect(screen, (255, 0, 0), self.hitbox, 2)
 
     def vie_restante(self, screen):
+        # Affichage des points de vie (les petits coeurs)
         for i in range(self.points_de_vie):
             screen.blit(self.image_coeur, (20 + (i * 60), 20))
+
+    def fenetre_pause(self, screen):
+        # Le menu de pause basique
+        surface_pause = pygame.Surface((L, H), pygame.SRCALPHA)
+        surface_pause.fill((0, 0, 0, 150))
+        screen.blit(surface_pause, (0, 0))
+
+        txt_p = pygame.font.SysFont("Arial", 80).render("PAUSE", True, (255, 255, 255))
+        txt_r = pygame.font.SysFont("Arial", 30).render("Presse P ou ECHAP pour recommencer", True, (200, 200, 200))
+
+        screen.blit(txt_p, (L//2 - txt_p.get_width()//2, H//2 - 50))
+        screen.blit(txt_r, (L//2 - txt_r.get_width()//2, H//2 + 50))
+
+    def fenetre_game_over(self, screen):
+        # L'écran quand on a perdu
+        surface_game_over = pygame.Surface((L, H), pygame.SRCALPHA)
+        surface_game_over.fill((0, 0, 0, 150))
+        screen.blit(surface_game_over, (0, 0))
+
+        txt_p = pygame.font.SysFont("Arial", 80).render("GAME OVER", True, (255, 255, 255))
+        txt_r = pygame.font.SysFont("Arial", 30).render("Une prochaine fois peut-être", True, (200, 200, 200))
+
+        screen.blit(txt_p, (L//2 - txt_p.get_width()//2, H//2 - 50))
+        screen.blit(txt_r, (L//2 - txt_r.get_width()//2, H//2 + 50))
 
 class Mob:
     def __init__(self, nom):
@@ -237,7 +261,9 @@ def run():
 
         if player.points_de_vie <= 0:
             print("GAME OVER")
-            pygame.quit()
+            player.fenetre_game_over(screen)
+            pygame.display.flip()
+            pygame.time.delay(5000)
             Continuer = False
             return
 
@@ -273,7 +299,6 @@ def run():
             if not player.pause:
                 m.maj(screen)
             else:
-                # On redessine juste sans maj la position/animation
                 rect = (int(m.index) * m.w, 0, m.w, m.h)
                 screen.blit(m.image, (m.x, m.y), rect)
 
@@ -281,9 +306,12 @@ def run():
                 print("Collision détectée")
                 m.touchee = True
                 player.points_de_vie -= 1
-            
+                
             if not player.pause and m.x < -200:
                 mobs.remove(m)
+
+        if player.pause:
+            player.fenetre_pause(screen)
 
         pygame.display.set_caption(f"Get What U Need - {time.strftime('%Hh%M')}")
         pygame.display.flip()
