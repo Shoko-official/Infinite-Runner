@@ -34,6 +34,7 @@ class Player:
         self.vitesse_anim = 0.13
         self.vitesse_anim_saut = 0.05
         self.hitbox = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.pause = False
         
     def appliquer_gravite(self):
         # Physique Perso
@@ -229,34 +230,39 @@ def run():
                 pygame.quit()
                 Continuer = False
                 return
+            
+            if event.type == pygame.KEYDOWN: # Sinon la sourie est vérifié en continu = lag inutile
+                if event.key == pygame.K_p or event.key == pygame.K_ESCAPE:
+                    player.pause = not player.pause
 
         if player.points_de_vie <= 0:
             print("GAME OVER")
             pygame.quit()
             Continuer = False
             return
-            
-        if pygame.key.get_pressed()[pygame.K_SPACE] and player.y >= player.limite_sol:
-            player.saut()
 
-        env.defilement()
-        player.appliquer_gravite()
-        player.animer()
+        if not player.pause:
+            if pygame.key.get_pressed()[pygame.K_SPACE] and player.y >= player.limite_sol:
+                player.saut()
 
-        spawn_timer_sol += 1
-        if spawn_timer_sol > FPS * 3.5:
-            mobs.append(Mob(random.choice(["loup", "ours", "rat"])))
-            spawn_timer_sol = 0
+            env.defilement()
+            player.appliquer_gravite()
+            player.animer()
 
-        spawn_timer_ciel += 2
-        if spawn_timer_ciel > FPS * 1.5:
-            nb_oiseaux = random.randint(0, 1)
-            for i in range(nb_oiseaux):
-                nouvel_oiseau = Mob("bird")
-                nouvel_oiseau.x += (i * random.randint(150, 300))
-                nouvel_oiseau.y_base += random.randint(-50, 50)
-                mobs.append(nouvel_oiseau)
-            spawn_timer_ciel = 0
+            spawn_timer_sol += 1
+            if spawn_timer_sol > FPS * 3.5:
+                mobs.append(Mob(random.choice(["loup", "ours", "rat"])))
+                spawn_timer_sol = 0
+
+            spawn_timer_ciel += 2
+            if spawn_timer_ciel > FPS * 1.5:
+                nb_oiseaux = random.randint(0, 1)
+                for i in range(nb_oiseaux):
+                    nouvel_oiseau = Mob("bird")
+                    nouvel_oiseau.x += (i * random.randint(150, 300))
+                    nouvel_oiseau.y_base += random.randint(-50, 50)
+                    mobs.append(nouvel_oiseau)
+                spawn_timer_ciel = 0
 
         screen.fill((255, 255, 255))
         env.maj(screen)
@@ -264,12 +270,19 @@ def run():
         player.vie_restante(screen)
 
         for m in mobs[:]:
-            m.maj(screen)
+            if not player.pause:
+                m.maj(screen)
+            else:
+                # On redessine juste sans maj la position/animation
+                rect = (int(m.index) * m.w, 0, m.w, m.h)
+                screen.blit(m.image, (m.x, m.y), rect)
+
             if player.hitbox.colliderect(m.hitbox) and not m.touchee:
                 print("Collision détectée")
                 m.touchee = True
                 player.points_de_vie -= 1
-            if m.x < -200:
+            
+            if not player.pause and m.x < -200:
                 mobs.remove(m)
 
         pygame.display.set_caption(f"Get What U Need - {time.strftime('%Hh%M')}")
