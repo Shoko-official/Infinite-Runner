@@ -12,7 +12,7 @@ class Player:
     """
     Classe qui gère le joueur,
     Les méthodes : 
-    - __init__ : on initialise les variables
+    - __init__ : on initialise les attributs
     - appliquer_gravite : on applique la gravité et on change l'image si on est en l'air
     - saut : explicite je pense
     - animer : gère les animations selon l'action
@@ -158,7 +158,17 @@ class Player:
         screen.blit(txt_p, (L//2 - txt_p.get_width()//2, H//2 - 50))
         screen.blit(txt_r, (L//2 - txt_r.get_width()//2, H//2 + 50))
 
+
+
+
 class Mob:
+    """
+    Classe qui gère les animaux,
+    Les méthodes : 
+    - __init__ : initialisaiton des attributs, et se base sur le type d'animal pour initialiser les attributs nécessaires
+    - maj : met à jour l'animal, fonction sinus pour l'oiseau, calcule la hitbox et la vitesse
+    """
+
     def __init__(self, nom):
         self.nom = nom
         self.index = 0
