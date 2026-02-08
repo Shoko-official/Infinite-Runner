@@ -28,8 +28,8 @@ Reste plus qu'a s'amuser !
 - Ajouter des power-up
 - Ajouter une difficultée progessive
 - Système pour sauvegarder le meilleur score avec un pseudo
-- Ajouter des trou, plateformes, boss (comme dans super mario-bros)
-- Menu principal, système de sauvegarde, relance, paramètres
+- Ajouter des trou, plateformes, et boss (comme dans super mario-bros)
+- Système de sauvegarde, paramètres
 - Personalisation du personnage
 
 ### Toute contribution est la bienvenue !

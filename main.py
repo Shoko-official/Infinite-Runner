@@ -11,7 +11,6 @@ import pygame
 import time
 import random
 import sys
-import os
 from math import sin
 from pathlib import Path
 
@@ -215,8 +214,8 @@ class Mob:
         self.hitbox = pygame.Rect(self.x, self.y, self.w, self.h)
         self.touchee = False
 
-    def maj(self, screen):
-        self.x -= self.vitesse
+    def maj(self, screen, multiplicateur=1.0):
+        self.x -= self.vitesse * multiplicateur
 
         if self.nom == "bird":
             self.compteur_vague += self.vitesse_haut_bas
@@ -386,6 +385,7 @@ def run():
     spawn_timer_sol = 0
     spawn_timer_ciel = 0
     jeu_en_cours = False
+    multiplicateur = 1.0
 
     # Boucle du Jeu
     while Continuer:
@@ -424,22 +424,25 @@ def run():
                             attente = False
             continue
 
-        # On regarde la logique du jeu, SSI le jeu n'est pas en pause
-        if not player.pause:
-            if pygame.key.get_pressed()[pygame.K_SPACE] and player.y >= player.limite_sol:
+        if jeu_en_cours and not player.pause:
+            if pygame.key.get_pressed()[pygame.K_SPACE]:
                 player.saut()
+
+            if multiplicateur < 2.5:
+                multiplicateur += 0.0001
+            env.vitesse_sol = 4 * multiplicateur
 
             env.defilement()
             player.appliquer_gravite()
             player.animer()
 
             spawn_timer_sol += 1
-            if spawn_timer_sol > FPS * 3.5:
+            if spawn_timer_sol > (FPS * 3.5) / multiplicateur:
                 mobs.append(Mob(random.choice(["loup", "ours", "rat"])))
                 spawn_timer_sol = 0
 
             spawn_timer_ciel += 2
-            if spawn_timer_ciel > FPS * 1.5:
+            if spawn_timer_ciel > (FPS * 1.5) / multiplicateur:
                 nb_oiseaux = random.randint(0, 1)
                 for i in range(nb_oiseaux):
                     nouvel_oiseau = Mob("bird")
@@ -461,7 +464,7 @@ def run():
             # On parcours les mobs actuels
             for m in mobs[:]:
                 if not player.pause:
-                    m.maj(screen)
+                    m.maj(screen, multiplicateur)
                 else:
                     rect = (int(m.index) * m.w, 0, m.w, m.h)
                     screen.blit(m.image, (m.x, m.y), rect)
@@ -476,8 +479,8 @@ def run():
             if player.pause:
                 Systeme.fenetre_pause(screen)
 
-        # On change le titre pour afficher l'heure, car why not
-        pygame.display.set_caption(f"Get What U Need - {time.strftime('%Hh%M')}")
+        vitesse_act = round(env.vitesse_sol, 2)
+        pygame.display.set_caption(f"Get What U Need - {time.strftime('%Hh%M')} - Speed: {vitesse_act}")
         pygame.display.flip()
         clock.tick(FPS) # On limite les FPS (pas besoin d'aller excessivement vite, on est qu'en 2d)
 
