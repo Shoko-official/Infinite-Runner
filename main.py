@@ -64,9 +64,13 @@ class Player:
                 self.frame_index = 0
     
     def maj(self, screen):
-        # On cale la hitbox sur la position actuelle
-        self.hitbox.topleft = (self.x, self.y)
         zone_decoupe = (int(self.frame_index) * self.width, 0, self.width, self.height)
+        frame_surface = self.image_act.subsurface(zone_decoupe)
+
+        # On calcule la hitbox réelle source https://www.pygame.org/docs/ref/surface.html
+        self.hitbox = frame_surface.get_bounding_rect()
+        self.hitbox.x += self.x
+        self.hitbox.y += self.y
         screen.blit(self.image_act, (self.x, self.y), zone_decoupe)
 
         if hitbox_activee:
@@ -120,6 +124,7 @@ class Mob:
         self.w = self.image.get_width() // self.nb_frames
         self.h = self.image.get_height()
         self.hitbox = pygame.Rect(self.x, self.y, self.w, self.h)
+        self.touchee = False
 
     def maj(self, screen):
         self.x -= self.vitesse
@@ -133,7 +138,13 @@ class Mob:
             self.index = 0
             
         rect = (int(self.index) * self.w, 0, self.w, self.h)
-        self.hitbox.topleft = (self.x, self.y) # Alignement sur le blit
+        frame_surface = self.image.subsurface(rect)
+
+        # Hitbox dynamique basée sur les pixels visibles
+        self.hitbox = frame_surface.get_bounding_rect()
+        self.hitbox.x += self.x
+        self.hitbox.y += self.y
+
         screen.blit(self.image, (self.x, self.y), rect)
         if hitbox_activee:  
             pygame.draw.rect(screen, (0, 255, 0), self.hitbox, 2)
@@ -239,8 +250,9 @@ def run():
 
         for m in mobs[:]:
             m.maj(screen)
-            if player.hitbox.colliderect(m.hitbox):
+            if player.hitbox.colliderect(m.hitbox) and not m.touchee:
                 print("Collision détectée")
+                m.touchee = True
             if m.x < -200:
                 mobs.remove(m)
 
