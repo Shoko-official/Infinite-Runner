@@ -424,7 +424,7 @@ class Sons:
     """
     def __init__(self):
         # On définit le chemin une fois pour toutes pour les effets
-        base_sfx = "assets/Sons/sfx/"
+        base_sfx = "assets/audio/sfx/"
         
         self.son_jump = pygame.mixer.Sound(str(path(base_sfx + "jump.wav")))   
         self.son_hit  = pygame.mixer.Sound(str(path(base_sfx + "hurt.wav")))
@@ -439,7 +439,7 @@ class Sons:
 
     def lancer_musique(self, track="background_music.wav", volume=0.2):
         # lance en boucle infinie
-        p = str(path("assets/Sons/music/" + track))
+        p = str(path("assets/audio/music/" + track))
         pygame.mixer.music.load(p)
         pygame.mixer.music.set_volume(volume) 
         pygame.mixer.music.play(-1)
