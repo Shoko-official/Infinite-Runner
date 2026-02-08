@@ -9,6 +9,38 @@ FPS = 120
 hitbox_activee = False
 
 class Player:
+    """
+    Classe qui gère le joueur,
+    Les méthodes : 
+    - __init__ : on initialise les variables
+    - appliquer_gravite : on applique la gravité et on change l'image si on est en l'air
+    - saut : explicite je pense
+    - animer : gère les animations selon l'action
+    - maj : mise à jour de la position et affichage
+    - vie_restante : affichage des points de vie en haut à gauche
+    - fenetre_pause : menu de pause basique
+    - fenetre_game_over : écran quand on a perdu
+
+    Les attributs :
+    - p_run : variable qui contient l'image de base du joueur
+    - p_jump : variable qui contient l'image du joueur en saut
+    - image_coeur : variable qui contient l'image des coeurs de vie
+    - p_run_nb_images : nombre d'images pour l'animation du joueur en course
+    - p_jump_nb_images : nombre d'images pour l'animation du joueur en saut
+    - image_act : variable qui contient l'image actuelle du joueur (p_run / p_jump)
+    - width : largeur du joueur
+    - height : hauteur du joueur
+    - x, y : position du joueur
+    - force_vert : force verticale du joueur
+    - gravite : gravité du joueur
+    - limite_sol : limite du sol
+    - frame_index : index de l'animation
+    - vitesse_anim : vitesse de l'animation
+    - vitesse_anim_saut : vitesse de l'animation en saut
+    - hitbox : hitbox du joueur
+    - pause : booléen pour la pause
+    - points_de_vie : points de vie du joueur
+    """
     def __init__(self):
         self.p_run = pygame.image.load("assets/graphics/characters/player/run.png").convert_alpha()
         self.p_run = pygame.transform.scale(self.p_run, (1024 * 2.5, 128 * 2.5))
@@ -34,25 +66,35 @@ class Player:
         self.points_de_vie = 3
         
     def appliquer_gravite(self):
-        # On applique la gravité et on change l'image si on est en l'air
+        """
+        Calcule simplement la gravité selon la force verticale qui augemente au fur et à mesure 
+        pour prendre plus de vitesse et s'arrête au sol
+        """
         self.force_vert += self.gravite
         self.y += self.force_vert
 
+        # On arrête la gravitée et remets l'animation de run quand on atteind le sol
         if self.y > self.limite_sol:
             self.y = self.limite_sol
             self.force_vert = 0
             self.image_act = self.p_run
+        # Sinon l'animation est le saut
         else :
             self.image_act = self.p_jump
     
     def saut(self):
-        # Un petit saut sympatoch
+        """
+        Méthode de saut basique, on vérifie d'abord qu'on est au sol, histoire d'empêcher
+         les double sauts
+        """
         if self.y >= self.limite_sol:
             self.force_vert = -10
             self.frame_index = 0
 
     def animer(self):
-        # Gestion des animations (run vs jump)
+        """
+        Méthode qui anime le sprite selon son action actuelle, en se basant sur l'attribut image_act
+        """
         if self.image_act == self.p_jump:
             if self.force_vert > 0 and self.frame_index >= 4 :
                 self.frame_index = 4 # On lock à la frame 4 (chute)
@@ -67,11 +109,12 @@ class Player:
     
     
     def maj(self, screen):
-        # Mise à jour de la position et affichage
+        """
+        Méthode qui mets à jour le sprite du joueur, sa hitbox et affiche celle si, si hibox_active est true
+        """
         zone_decoupe = (int(self.frame_index) * self.width, 0, self.width, self.height)
         frame_surface = self.image_act.subsurface(zone_decoupe)
 
-        # On calcule la hitbox réelle source https://www.pygame.org/docs/ref/surface.html
         self.hitbox = frame_surface.get_bounding_rect()
         self.hitbox.x += self.x
         self.hitbox.y += self.y
@@ -81,12 +124,16 @@ class Player:
             pygame.draw.rect(screen, (255, 0, 0), self.hitbox, 2)
 
     def vie_restante(self, screen):
-        # Affichage des points de vie (les petits coeurs)
+        """
+        Méthode qui affiche la vie restante en haut à gauche
+        """
         for i in range(self.points_de_vie):
             screen.blit(self.image_coeur, (20 + (i * 60), 20))
 
     def fenetre_pause(self, screen):
-        # Le menu de pause basique
+        """
+        Méthode qui créer la fenêtre de pause
+        """
         surface_pause = pygame.Surface((L, H), pygame.SRCALPHA)
         surface_pause.fill((0, 0, 0, 150))
         screen.blit(surface_pause, (0, 0))
@@ -98,7 +145,9 @@ class Player:
         screen.blit(txt_r, (L//2 - txt_r.get_width()//2, H//2 + 50))
 
     def fenetre_game_over(self, screen):
-        # L'écran quand on a perdu
+        """
+        Méthode qui créer la fenêtre de game over
+        """
         surface_game_over = pygame.Surface((L, H), pygame.SRCALPHA)
         surface_game_over.fill((0, 0, 0, 150))
         screen.blit(surface_game_over, (0, 0))
