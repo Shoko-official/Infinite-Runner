@@ -1,3 +1,12 @@
+# --------------------------------------------------------------------------
+# AI USAGE RESTRICTION:
+# This source code and all associated assets are NOT authorized for use 
+# in training, fine-tuning, or improving any machine learning or 
+# artificial intelligence models.
+# --------------------------------------------------------------------------
+# License: MIT (See LICENSE file for details)
+# --------------------------------------------------------------------------
+
 import pygame
 import time
 import random
@@ -167,6 +176,21 @@ class Mob:
     Les méthodes : 
     - __init__ : initialisaiton des attributs, et se base sur le type d'animal pour initialiser les attributs nécessaires
     - maj : met à jour l'animal, fonction sinus pour l'oiseau, calcule la hitbox et la vitesse
+    
+    Les attributs :
+    - nom : le nom de l'animal
+    - index : l'index de l'animal, pour boucler l'animation quand on est a la fin du spritesheet
+    - compteur_vague : le compteur de vague, utile pour le calcule des vagues/ocillations de l'oiseau
+    - x : la position horizontale de l'animal
+    - y : la position verticale de l'animal
+    - y_base : la position verticale de base de l'animal
+    - amplitude : l'amplitude de l'oiseau
+    - vitesse_haut_bas : la vitesse de l'oiseau
+    - vitesse : la vitesse de l'animal
+    - image : spritesheet de l'animal
+    - nb_frames : le nombre de frames de l'animal
+    - w : la largeur de l'animal, pour les hitbox
+    - h : la hauteur de l'animal, idem
     """
 
     def __init__(self, nom):
@@ -175,7 +199,7 @@ class Mob:
         self.compteur_vague = 0
         self.x = L + random.randint(100, 600)
 
-        # Configuration manuelle
+        # Configure les params selon l'animal
         if nom == "bird":
             self.image = pygame.image.load("assets/graphics/environment/mobs/bird/walk.png").convert_alpha()
             self.nb_frames = 6
@@ -185,7 +209,7 @@ class Mob:
             self.y = self.y_base
             self.amplitude = 30
             self.vitesse_haut_bas = 0.04
-            self.vitesse = random.uniform(4, 6)
+            self.vitesse = random.uniform(4, 6) # Permets d'avoir une vitesse avec décimale (+ naturel)
 
         elif nom == "rat":
             self.image = pygame.image.load("assets/graphics/environment/mobs/rat/walk.png").convert_alpha()
@@ -224,15 +248,12 @@ class Mob:
         if self.nom == "bird":
             self.compteur_vague += self.vitesse_haut_bas
             self.y = self.y_base + sin(self.compteur_vague) * self.amplitude
-
-        self.index += 0.15
+        self.index += 0.10
         if self.index >= self.nb_frames:
             self.index = 0
             
         rect = (int(self.index) * self.w, 0, self.w, self.h)
         frame_surface = self.image.subsurface(rect)
-
-        # Hitbox dynamique basée sur les pixels visibles
         self.hitbox = frame_surface.get_bounding_rect()
         self.hitbox.x += self.x
         self.hitbox.y += self.y
@@ -241,7 +262,31 @@ class Mob:
         if hitbox_activee:  
             pygame.draw.rect(screen, (0, 255, 0), self.hitbox, 2)
 
+
+
+
+
 class Environnement:
+    """
+    Classe qui gère l'environnement, 
+    Les méthodes :
+    - __init__ : initialisaiton des attributs
+    - defilement : défilement inégal des plans selon la vitesse de chacun
+    - maj : met à jour l'environnement
+    
+    Les attributs :
+    - bg_img : ciel
+    - bg_img_2 : plan-loin
+    - bg_img_3 : plan-éloigné
+    - bg_img_4 : plan-proche
+    - bg_img_5 : premier-plan
+    - sol_img : sol
+    - vitesse : vitesse de défilement des plans, effet 3d
+    - fond_x : position horizontale des plans, sous forme de liste
+    - sol_x : position horizontale du sol
+    - sol_w : largeur du sol
+    - vitesse_sol : vitesse de défilement du sol
+    """
     def __init__(self):
         self.bg_img = pygame.image.load("assets/graphics/environment/background/ville/1.png").convert()
         self.bg_img_2 = pygame.image.load("assets/graphics/environment/background/ville/2.png").convert_alpha()
@@ -260,10 +305,10 @@ class Environnement:
 
         self.vitesse = [0.2, 0.2, 1.2, 1.8, 2.2]
 
-        self.fond_x = [0, 0, 0, 0, 0] # liste car les positions sont différentes
+        self.fond_x = [0, 0, 0, 0, 0]
         self.sol_x = 0
         self.sol_w = L // 4
-        self.vitesse_sol = 4 # Je la trouvais agréable
+        self.vitesse_sol = 4
 
     def defilement(self):
         for i in range(5):
@@ -295,6 +340,21 @@ class Environnement:
             screen.blit(self.sol_img, (self.sol_x + (i * self.sol_w), H - 100))
 
 def run():
+    """
+    Fonction d'affichage et appels aux méthode des classes
+    Initialisation : 
+    - pygame.init() : démarre les modules de pygame
+    - clock = créer un object clock, pour gerrer la vitesse et FPS
+    - screen = définit la dimension de la fenêtre selon les variables globales L et H
+    - player = création de l'objet Player
+    - env = création de l'objet Environnement
+    - Continuer = variable qui contrôle la boucle du jeu
+
+    Les variables locales :
+    - mobs = liste qui contient les mobs
+    - spawn_timer_sol = timer pour le spawn des animaux terrestres
+    - spawn_timer_ciel = timer pour le spawn des oiseaux
+    """
     pygame.init()
     clock = pygame.time.Clock()
     screen = pygame.display.set_mode((L, H))
@@ -307,6 +367,7 @@ def run():
     spawn_timer_sol = 0
     spawn_timer_ciel = 0
 
+    # Boucle du Jeu
     while Continuer:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -314,7 +375,8 @@ def run():
                 Continuer = False
                 return
             
-            if event.type == pygame.KEYDOWN: # Sinon la sourie est vérifié en continu = lag inutile
+            # On regarde si une touhe est pressée, puis si c'est p ou esc, sinon ca écoute la sourie et lag
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p or event.key == pygame.K_ESCAPE:
                     player.pause = not player.pause
 
@@ -322,10 +384,11 @@ def run():
             print("GAME OVER")
             player.fenetre_game_over(screen)
             pygame.display.flip()
-            pygame.time.delay(5000)
+            pygame.time.delay(2500)
             Continuer = False
             return
 
+        # On regarde la logique du jeu, SSI le jeu n'est pas en pause
         if not player.pause:
             if pygame.key.get_pressed()[pygame.K_SPACE] and player.y >= player.limite_sol:
                 player.saut()
@@ -354,6 +417,7 @@ def run():
         player.maj(screen)
         player.vie_restante(screen)
 
+        # On parcours les mobs actuels un par un et calcule les hitbox
         for m in mobs[:]:
             if not player.pause:
                 m.maj(screen)
@@ -372,9 +436,12 @@ def run():
         if player.pause:
             player.fenetre_pause(screen)
 
+        # On change le titre pour afficher l'heure, car why not
         pygame.display.set_caption(f"Get What U Need - {time.strftime('%Hh%M')}")
         pygame.display.flip()
-        clock.tick(FPS)
+        clock.tick(FPS) # On limite les FPS (pas besoin d'aller excessivement vite, on est qu'en 2d)
 
 if __name__ == "__main__":
+    print("Lancement de l'application")
     run()
+    print("Arrêt de l'application")

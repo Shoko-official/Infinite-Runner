@@ -1,0 +1,41 @@
+# Bloque les bots d'entraînement OpenAI
+User-agent: GPTBot
+Disallow: /
+User-agent: ChatGPT-User
+Disallow: /
+
+# Bloque Google Extended (Gemini/Vertex AI)
+User-agent: Google-Extended
+Disallow: /
+
+# Bloque Common Crawl (utilisé par de nombreuses IA)
+User-agent: CCBot
+Disallow: /
+
+# Bloque Anthropic (Claude)
+User-agent: ClaudeBot
+Disallow: /
+User-agent: Claude-Web
+Disallow: /
+
+# Bloque Perplexity
+User-agent: PerplexityBot
+Disallow: /
+
+# Bloque Meta (Llama)
+User-agent: FacebookBot
+Disallow: /
+User-agent: MetaCrawler
+Disallow: /
+
+# Bloque You.com
+User-agent: YouBot
+Disallow: /
+
+# Bloque ByteDance (TikTok/Douyin AI)
+User-agent: Bytespider
+Disallow: /
+
+# Bloque Amazon (Titan)
+User-agent: Amazonbot
+Disallow: /
