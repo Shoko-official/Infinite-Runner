@@ -10,7 +10,18 @@
 import pygame
 import time
 import random
+import sys
+import os
 from math import sin
+from pathlib import Path
+
+def path(relative_path):
+    """
+    Fonction pour trouver le chemin des ressources, 
+    pour que le .exe trouve les images après compilation.
+    """
+    base_path = Path(getattr(sys, '_MEIPASS', '.'))
+    return base_path / relative_path
 
 # Variables Globales
 L, H = 1300, 800
@@ -51,11 +62,11 @@ class Player:
     - points_de_vie : points de vie du joueur
     """
     def __init__(self):
-        self.p_run = pygame.image.load("assets/graphics/characters/player/run.png").convert_alpha()
+        self.p_run = pygame.image.load(path("assets/graphics/characters/player/run.png")).convert_alpha()
         self.p_run = pygame.transform.scale(self.p_run, (1024 * 2.5, 128 * 2.5))
-        self.p_jump = pygame.image.load("assets/graphics/characters/player/jump.png").convert_alpha()
+        self.p_jump = pygame.image.load(path("assets/graphics/characters/player/jump.png")).convert_alpha()
         self.p_jump = pygame.transform.scale(self.p_jump, (896 * 2.5, 128 * 2.5))
-        self.image_coeur = pygame.image.load("assets/graphics/items/heart.png").convert_alpha()        
+        self.image_coeur = pygame.image.load(path("assets/graphics/items/heart.png")).convert_alpha()        
         self.image_coeur = pygame.transform.scale(self.image_coeur, (50, 50)) 
         self.p_run_nb_images = 8
         self.p_jump_nb_images = 7
@@ -201,7 +212,7 @@ class Mob:
 
         # Configure les params selon l'animal
         if nom == "bird":
-            self.image = pygame.image.load("assets/graphics/environment/mobs/bird/walk.png").convert_alpha()
+            self.image = pygame.image.load(path("assets/graphics/environment/mobs/bird/walk.png")).convert_alpha()
             self.nb_frames = 6
             # Redimensionnement par multiplicateur
             self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 2), int(self.image.get_height() * 2)))
@@ -212,7 +223,7 @@ class Mob:
             self.vitesse = random.uniform(4, 6) # Permets d'avoir une vitesse avec décimale (+ naturel)
 
         elif nom == "rat":
-            self.image = pygame.image.load("assets/graphics/environment/mobs/rat/walk.png").convert_alpha()
+            self.image = pygame.image.load(path("assets/graphics/environment/mobs/rat/walk.png")).convert_alpha()
             self.nb_frames = 4
             self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 2), int(self.image.get_height() * 2)))
             # On calcule la hauteur après le scale pour le positionnement
@@ -221,7 +232,7 @@ class Mob:
             self.vitesse = random.uniform(5, 7)
 
         elif nom == "loup":
-            self.image = pygame.image.load("assets/graphics/environment/mobs/loup/run.png").convert_alpha()
+            self.image = pygame.image.load(path("assets/graphics/environment/mobs/loup/run.png")).convert_alpha()
             self.nb_frames = 6
             self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 2.2), int(self.image.get_height() * 2.2)))
             h_temp = self.image.get_height()
@@ -229,7 +240,7 @@ class Mob:
             self.vitesse = random.uniform(6, 8)
 
         elif nom == "ours":
-            self.image = pygame.image.load("assets/graphics/environment/mobs/ours/run.png").convert_alpha()
+            self.image = pygame.image.load(path("assets/graphics/environment/mobs/ours/run.png")).convert_alpha()
             self.nb_frames = 6
             self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 3), int(self.image.get_height() * 3)))
             h_temp = self.image.get_height()
@@ -288,11 +299,11 @@ class Environnement:
     - vitesse_sol : vitesse de défilement du sol
     """
     def __init__(self):
-        self.bg_img = pygame.image.load("assets/graphics/environment/background/ville/1.png").convert()
-        self.bg_img_2 = pygame.image.load("assets/graphics/environment/background/ville/2.png").convert_alpha()
-        self.bg_img_3 = pygame.image.load("assets/graphics/environment/background/ville/3.png").convert_alpha()
-        self.bg_img_4 = pygame.image.load("assets/graphics/environment/background/ville/4.png").convert_alpha()
-        self.bg_img_5 = pygame.image.load("assets/graphics/environment/background/ville/5.png").convert_alpha()
+        self.bg_img = pygame.image.load(path("assets/graphics/environment/background/ville/1.png")).convert()
+        self.bg_img_2 = pygame.image.load(path("assets/graphics/environment/background/ville/2.png")).convert_alpha()
+        self.bg_img_3 = pygame.image.load(path("assets/graphics/environment/background/ville/3.png")).convert_alpha()
+        self.bg_img_4 = pygame.image.load(path("assets/graphics/environment/background/ville/4.png")).convert_alpha()
+        self.bg_img_5 = pygame.image.load(path("assets/graphics/environment/background/ville/5.png")).convert_alpha()
 
         self.bg_img = pygame.transform.scale(self.bg_img, (L, H)) 
         self.bg_img_2 = pygame.transform.scale(self.bg_img_2, (L, H))
@@ -300,7 +311,7 @@ class Environnement:
         self.bg_img_4 = pygame.transform.scale(self.bg_img_4, (L, H))   
         self.bg_img_5 = pygame.transform.scale(self.bg_img_5, (L, H))
 
-        self.sol_img = pygame.image.load("assets/graphics/environment/props/ground.png").convert()
+        self.sol_img = pygame.image.load(path("assets/graphics/environment/props/ground.png")).convert()
         self.sol_img = pygame.transform.scale(self.sol_img, (L // 4, 100))
 
         self.vitesse = [0.2, 0.2, 1.2, 1.8, 2.2]
