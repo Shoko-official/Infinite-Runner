@@ -24,7 +24,6 @@ Reste plus qu'a s'amuser !
 
 ## Améliorations futures :
 
-- Ajouter musique et sons
 - Ajouter de coeurs, bouclier, aimant
 - Système pour sauvegarder le meilleur score avec un pseudo
 - Ajouter des trou, plateformes, et boss (comme dans super mario-bros)
@@ -36,10 +35,10 @@ Je prendrais soin de réagir le plus vite possible aux pull requests en tout gen
 Un grand merci à vous !
 
 ## A propos
-Développeur : Shoko
-Type : Individuel
-Langage : Python
-Bibliothèque : Pygame
+- Développeur : [Shoko](https://github.com/Shoko-official)
+- Type : Projet Solo
+- Langage : [Python](https://www.python.org/)
+- Bibliothèque : [Pygame](https://github.com/pygame/pygame)
 
 # Liscence 
 Ce projet est sous licence MIT, cf [LICENSE.txt](https://github.com/Shoko-official/Infinite-Runner/tree/main?tab=License-1-ov-file)
