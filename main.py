@@ -26,7 +26,7 @@ def path(relative_path):
 # Variables Globales
 L, H = 1300, 800
 FPS = 120
-hitbox_activee = False
+hitbox_activee = True
 
 class Player:
     """
@@ -37,29 +37,25 @@ class Player:
     - saut : explicite je pense
     - animer : gère les animations selon l'action
     - maj : mise à jour de la position et affichage
-    - vie_restante : affichage des points de vie en haut à gauche
-    - fenetre_pause : menu de pause basique
-    - fenetre_game_over : écran quand on a perdu
 
     Les attributs :
-    - p_run : variable qui contient l'image de base du joueur
-    - p_jump : variable qui contient l'image du joueur en saut
-    - image_coeur : variable qui contient l'image des coeurs de vie
-    - p_run_nb_images : nombre d'images pour l'animation du joueur en course
-    - p_jump_nb_images : nombre d'images pour l'animation du joueur en saut
-    - image_act : variable qui contient l'image actuelle du joueur (p_run / p_jump)
-    - width : largeur du joueur
-    - height : hauteur du joueur
-    - x, y : position du joueur
-    - force_vert : force verticale du joueur
-    - gravite : gravité du joueur
-    - limite_sol : limite du sol
-    - frame_index : index de l'animation
-    - vitesse_anim : vitesse de l'animation
-    - vitesse_anim_saut : vitesse de l'animation en saut
-    - hitbox : hitbox du joueur
-    - pause : booléen pour la pause
-    - points_de_vie : points de vie du joueur
+    - p_run : images pour la course
+    - p_jump : images pour le saut
+    - image_coeur : icône de vie
+    - p_run_nb_images : frames course
+    - p_jump_nb_images : frames saut
+    - image_act : état actuel (course/saut)
+    - width, height : dimensions
+    - x, y : position
+    - force_vert : physique verticale
+    - gravite : force de gravité
+    - limite_sol : limite de chute
+    - frame_index : index d'anim
+    - vitesse_anim : vitesse d'anim
+    - vitesse_anim_saut : vitesse anim saut
+    - hitbox : zone de collision
+    - pause : état de pause
+    - points_de_vie : vie restante
     """
     def __init__(self):
         self.p_run = pygame.image.load(path("assets/graphics/characters/player/run.png")).convert_alpha()
@@ -143,40 +139,6 @@ class Player:
         if hitbox_activee:
             pygame.draw.rect(screen, (255, 0, 0), self.hitbox, 2)
 
-    def vie_restante(self, screen):
-        """
-        Méthode qui affiche la vie restante en haut à gauche
-        """
-        for i in range(self.points_de_vie):
-            screen.blit(self.image_coeur, (20 + (i * 60), 20))
-
-    def fenetre_pause(self, screen):
-        """
-        Méthode qui créer la fenêtre de pause
-        """
-        surface_pause = pygame.Surface((L, H), pygame.SRCALPHA)
-        surface_pause.fill((0, 0, 0, 150))
-        screen.blit(surface_pause, (0, 0))
-
-        txt_p = pygame.font.SysFont("Arial", 80).render("PAUSE", True, (255, 255, 255))
-        txt_r = pygame.font.SysFont("Arial", 30).render("Presse P ou ECHAP pour recommencer", True, (200, 200, 200))
-
-        screen.blit(txt_p, (L//2 - txt_p.get_width()//2, H//2 - 50))
-        screen.blit(txt_r, (L//2 - txt_r.get_width()//2, H//2 + 50))
-
-    def fenetre_game_over(self, screen):
-        """
-        Méthode qui créer la fenêtre de game over
-        """
-        surface_game_over = pygame.Surface((L, H), pygame.SRCALPHA)
-        surface_game_over.fill((0, 0, 0, 150))
-        screen.blit(surface_game_over, (0, 0))
-
-        txt_p = pygame.font.SysFont("Arial", 80).render("GAME OVER", True, (255, 255, 255))
-        txt_r = pygame.font.SysFont("Arial", 30).render("Une prochaine fois peut-être", True, (200, 200, 200))
-
-        screen.blit(txt_p, (L//2 - txt_p.get_width()//2, H//2 - 50))
-        screen.blit(txt_r, (L//2 - txt_r.get_width()//2, H//2 + 50))
 
 
 
@@ -350,6 +312,52 @@ class Environnement:
         for i in range(6):
             screen.blit(self.sol_img, (self.sol_x + (i * self.sol_w), H - 100))
 
+class Systeme():
+    """
+    Classe qui regroupe les différentes éléments d'interface : menu, pts vie ect..
+    Les méthodes :
+    - fenetre_game_over : affiche la fenêtre game over
+    - fenetre_lanceur : affiche la fenêtre de lancement
+    - fenetre_pause : affiche la fenêtre de pause
+    - afficher_interface : affiche les points de vie
+    """
+    def fenetre_game_over(screen):
+        overlay = pygame.Surface((L, H), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 180))
+        screen.blit(overlay, (0, 0))
+
+        txt_titre = pygame.font.SysFont("Arial", 80, bold=True).render("GAME OVER", True, (255, 105, 97))
+        txt_msg = pygame.font.SysFont("Arial", 30).render("Oups.. Appuie sur Espace pour recommencer", True, (200, 200, 200))
+
+        screen.blit(txt_titre, (L//2 - txt_titre.get_width()//2, H//2 - 60))
+        screen.blit(txt_msg, (L//2 - txt_msg.get_width()//2, H//2 + 20))
+
+    def fenetre_lanceur(screen):
+        overlay = pygame.Surface((L, H), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 150))
+        screen.blit(overlay, (0, 0))
+
+        txt_titre = pygame.font.SysFont("Arial", 80, bold=True).render("Get What U Need", True, (255, 255, 255))
+        txt_msg = pygame.font.SysFont("Arial", 35).render("Appuie sur ESPACE pour commencer", True, (220, 220, 220))
+
+        screen.blit(txt_titre, (L//2 - txt_titre.get_width()//2, H//2 - 60))
+        screen.blit(txt_msg, (L//2 - txt_msg.get_width()//2, H//2 + 20))
+
+    def fenetre_pause(screen):
+        overlay = pygame.Surface((L, H), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 160))
+        screen.blit(overlay, (0, 0))
+
+        txt_titre = pygame.font.SysFont("Arial", 80, bold=True).render("PAUSE", True, (255, 255, 255))
+        txt_msg = pygame.font.SysFont("Arial", 30).render("Appuie sur P ou ESC pour reprendre", True, (200, 200, 200))
+
+        screen.blit(txt_titre, (L//2 - txt_titre.get_width()//2, H//2 - 60))
+        screen.blit(txt_msg, (L//2 - txt_msg.get_width()//2, H//2 + 20))
+
+    def afficher_interface(screen, player):
+        for i in range(player.points_de_vie):
+            screen.blit(player.image_coeur, (20 + (i * 60), 20))
+
 def run():
     """
     Fonction d'affichage et appels aux méthode des classes
@@ -377,27 +385,44 @@ def run():
     mobs = []
     spawn_timer_sol = 0
     spawn_timer_ciel = 0
+    jeu_en_cours = False
 
     # Boucle du Jeu
     while Continuer:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                Continuer = False
                 return
             
             # On regarde si une touhe est pressée, puis si c'est p ou esc, sinon ca écoute la sourie et lag
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    if not jeu_en_cours:
+                        jeu_en_cours = True
                 if event.key == pygame.K_p or event.key == pygame.K_ESCAPE:
                     player.pause = not player.pause
 
         if player.points_de_vie <= 0:
-            print("GAME OVER")
-            player.fenetre_game_over(screen)
+            Systeme.fenetre_game_over(screen)
             pygame.display.flip()
-            pygame.time.delay(2500)
-            Continuer = False
-            return
+            
+            # On attend un petit input pour restart proprement
+            attente = True
+            while attente:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        return
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+                            # On reset les variables de jeu
+                            player = Player()
+                            env = Environnement()
+                            mobs = []
+                            spawn_timer_sol = 0
+                            spawn_timer_ciel = 0
+                            attente = False
+            continue
 
         # On regarde la logique du jeu, SSI le jeu n'est pas en pause
         if not player.pause:
@@ -423,29 +448,33 @@ def run():
                     mobs.append(nouvel_oiseau)
                 spawn_timer_ciel = 0
 
+        # Gestion de l'affichage
         screen.fill((255, 255, 255))
         env.maj(screen)
-        player.maj(screen)
-        player.vie_restante(screen)
 
-        # On parcours les mobs actuels un par un et calcule les hitbox
-        for m in mobs[:]:
-            if not player.pause:
-                m.maj(screen)
-            else:
-                rect = (int(m.index) * m.w, 0, m.w, m.h)
-                screen.blit(m.image, (m.x, m.y), rect)
+        if not jeu_en_cours:
+            Systeme.fenetre_lanceur(screen)
+        else:
+            player.maj(screen)
+            Systeme.afficher_interface(screen, player)
 
-            if player.hitbox.colliderect(m.hitbox) and not m.touchee:
-                print("Collision détectée")
-                m.touchee = True
-                player.points_de_vie -= 1
-                
-            if not player.pause and m.x < -200:
-                mobs.remove(m)
+            # On parcours les mobs actuels
+            for m in mobs[:]:
+                if not player.pause:
+                    m.maj(screen)
+                else:
+                    rect = (int(m.index) * m.w, 0, m.w, m.h)
+                    screen.blit(m.image, (m.x, m.y), rect)
 
-        if player.pause:
-            player.fenetre_pause(screen)
+                if player.hitbox.colliderect(m.hitbox) and not m.touchee:
+                    m.touchee = True
+                    player.points_de_vie -= 1
+                    
+                if not player.pause and m.x < -200:
+                    mobs.remove(m)
+
+            if player.pause:
+                Systeme.fenetre_pause(screen)
 
         # On change le titre pour afficher l'heure, car why not
         pygame.display.set_caption(f"Get What U Need - {time.strftime('%Hh%M')}")
