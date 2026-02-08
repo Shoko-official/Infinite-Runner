@@ -43,4 +43,4 @@ Langage : Python
 Bibliothèque : Pygame
 
 # Liscence 
-Ce projet est sous licence MIT, cf LICENSE.txt
+Ce projet est sous licence MIT, cf [LICENSE.txt](https://github.com/Shoko-official/Infinite-Runner/tree/main?tab=License-1-ov-file)
